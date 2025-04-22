@@ -25,19 +25,21 @@ jobs:
 
       - name: Copy CUDA libraries
         run: |
-          mkdir -p /tmp/cuda-libs/
-          echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
-          pushd "${{steps.cuda-toolkit.outputs.CUDA_PATH}}/bin"
-          cp cufftw64_11.dll cublas64_12.dll cublasLt64_12.dll cudart64_12.dll cufft64_11.dll /tmp/cuda-libs/
+          New-Item -Path "$env:TEMP\cuda-libs\" -ItemType Directory -Force
+          Write-Host "Cuda install location: $env:CUDA_PATH"
+          Push-Location "$env:CUDA_PATH\bin"
+          Copy-Item -Path "cufftw64_11.dll", "cublas64_12.dll", "cublasLt64_12.dll", "cudart64_12.dll", "cufft64_11.dll" -Destination "$env:TEMP\cuda-libs\"
+          Pop-Location
 
       - name: Download cuDNN libraries
         run: |
-          mkdir -p /tmp/cuda-libs/
-          wget https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.8.0.87_cuda12-archive.zip -O a.zip
-          unzip a.zip
-          pushd cudnn-*/bin/
-          cp cudnn64_9.dll cudnn_adv64_9.dll cudnn_cnn64_9.dll cudnn_engines_precompiled64_9.dll cudnn_engines_runtime_compiled64_9.dll cudnn_graph64_9.dll cudnn_heuristic64_9.dll cudnn_ops64_9.dll /tmp/cuda-libs/
+          New-Item -Path "$env:TEMP\cuda-libs\" -ItemType Directory -Force
+          Invoke-WebRequest -Uri "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.8.0.87_cuda12-archive.zip" -OutFile "a.zip"
+          Expand-Archive -Path "a.zip" -DestinationPath "."
+          Push-Location -Path "cudnn-*\bin\"
+          Copy-Item -Path "cudnn64_9.dll", "cudnn_adv64_9.dll", "cudnn_cnn64_9.dll", "cudnn_engines_precompiled64_9.dll", "cudnn_engines_runtime_compiled64_9.dll", "cudnn_graph64_9.dll", "cudnn_heuristic64_9.dll", "cudnn_ops64_9.dll" -Destination "$env:TEMP\cuda-libs\"
+          Pop-Location
 
       - name: Check
         run: |
-          ls -lh /tmp/cuda-libs
+          Get-ChildItem -Path "$env:TEMP\cuda-libs" -Force
