@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Download CUDA libraries
+        uses: Jimver/cuda-toolkit@9b993a72d35b5634a69ca7e34b39a002a87c367c # v0.2.23
+        id: cuda-toolkit
+        with:
+          cuda: '12.6.0'
+
+      - name: Copy CUDA libraries
+        run: |
+          mkdir -p /tmp/cuda-libs/
+          echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          pushd "${{steps.cuda-toolkit.outputs.CUDA_PATH}}/bin"
+          cp cufftw64_11.dll cublas64_12.dll cublasLt64_12.dll cudart64_12.dll cufft64_11.dll /tmp/cuda-libs/
+
+      - name: Download cuDNN libraries
+        run: |
+          mkdir -p /tmp/cuda-libs/
+          wget https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.8.0.87_cuda12-archive.zip -O a.zip
+          unzip a.zip
+          pushd cudnn-*/bin/
+          cp cudnn64_9.dll cudnn_adv64_9.dll cudnn_cnn64_9.dll cudnn_engines_precompiled64_9.dll cudnn_engines_runtime_compiled64_9.dll cudnn_graph64_9.dll cudnn_heuristic64_9.dll cudnn_ops64_9.dll /tmp/cuda-libs/
+
+       - name: Check
+         run: |
+           ls -lh /tmp/cuda-libs
