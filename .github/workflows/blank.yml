@@ -21,6 +21,7 @@ jobs:
         id: cuda-toolkit
         with:
           cuda: '12.6.0'
+          sub-packages: '["cublas", "cufft"]'
 
       - name: Copy CUDA libraries
         run: |
